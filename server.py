@@ -10,7 +10,14 @@ from tradingview_ta import TA_Handler, Interval
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "3000"))
 
-mcp = FastMCP("TradingView Chart Analyst", host=HOST, port=PORT, streamable_http_path="/mcp")
+mcp = FastMCP(
+    "TradingView Chart Analyst",
+    host=HOST,
+    port=PORT,
+    streamable_http_path="/mcp",
+    json_response=True,
+    stateless_http=True,
+)
 
 
 INTERVALS = {
@@ -120,13 +127,13 @@ def multi_timeframe_analysis(
     symbol: str,
     screener: str = "crypto",
     exchange: str = "BINANCE",
-    intervals: list[str] | None = None,
+    intervals: str = "15m,1h,4h,1d",
 ) -> dict[str, Any]:
     """Compare TradingView recommendations across multiple timeframes."""
 
-    intervals = intervals or ["15m", "1h", "4h", "1d"]
+    interval_list = [item.strip() for item in intervals.split(",") if item.strip()]
     results = []
-    for interval in intervals:
+    for interval in interval_list:
         analysis = _handler(symbol, screener, exchange, interval).get_analysis()
         compact = _compact_analysis(analysis)
         results.append(
